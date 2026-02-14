@@ -1,30 +1,58 @@
 import Link from 'next/link';
 import { INITIAL_COURSES } from '@/lib/courses';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 import '@/app/globals.css';
 
-async function getScans(courseCode: string) {
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabase = createClient(supabaseUrl, supabaseKey)
+
+async function getCourseAndScans(courseCode: string) {
   try {
-    // Get course
-    const { data: course } = await supabase
+    console.log('Fetching course:', courseCode)
+    
+    // Get course from DB
+    const { data: dbCourse, error: courseError } = await supabase
       .from('courses')
       .select('id, course_number, course_name, department')
       .eq('course_number', courseCode)
-      .single();
+      .maybeSingle();
 
-    if (!course) return [];
+    if (courseError && courseError.code !== 'PGRST116') {
+      console.error('Error fetching course:', courseError)
+    }
 
-    // Get scans
-    const { data: scans } = await supabase
-      .from('scans')
-      .select('*')
-      .eq('course_id', course.id)
-      .order('created_at', { ascending: false });
+    // Use DB course or fallback to INITIAL_COURSES
+    const course = dbCourse || INITIAL_COURSES.find(c => c.code === courseCode)
+    
+    if (!course) {
+      console.log('Course not found:', courseCode)
+      return { course: null, scans: [] }
+    }
 
-    return scans || [];
+    console.log('Course found:', course)
+
+    // Get scans - use DB course id if available
+    if (dbCourse) {
+      const { data: scans, error: scansError } = await supabase
+        .from('scans')
+        .select('*')
+        .eq('course_id', dbCourse.id)
+        .order('created_at', { ascending: false });
+
+      if (scansError) {
+        console.error('Error fetching scans:', scansError)
+        return { course, scans: [] }
+      }
+
+      console.log('Scans found:', scans?.length || 0)
+      return { course, scans: scans || [] }
+    }
+
+    return { course, scans: [] }
   } catch (error) {
-    console.error('Error fetching scans:', error);
-    return [];
+    console.error('Error in getCourseAndScans:', error);
+    return { course: null, scans: [] }
   }
 }
 
@@ -37,8 +65,7 @@ function getPublicUrl(filePath: string) {
 }
 
 export default async function CoursePage({ params }: { params: { code: string } }) {
-  const course = INITIAL_COURSES.find(c => c.code === params.code);
-  const scans = await getScans(params.code);
+  const { course, scans } = await getCourseAndScans(params.code);
   
   if (!course) {
     return (
@@ -161,6 +188,13 @@ export default async function CoursePage({ params }: { params: { code: string } 
               </div>
             </div>
           </div>
+
+          {/* Debug info - remove later */}
+          {process.env.NODE_ENV === 'development' && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4 text-sm">
+              <strong>Debug:</strong> Found {scans.length} scans for course {params.code}
+            </div>
+          )}
 
           {/* Scans List */}
           {scans.length === 0 ? (
