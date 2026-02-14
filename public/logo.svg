@@ -1,0 +1,28 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="256" fill="url(#gradient)"/>
+  
+  <!-- Gradient definition -->
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0EA5E9;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#6366F1;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Modern interpretation of the three-wave symbol -->
+  <!-- Top wave -->
+  <path d="M256 120 C220 120, 200 140, 200 170 C200 200, 220 220, 256 220 C292 220, 312 200, 312 170 C312 140, 292 120, 256 120 Z" fill="white" opacity="0.95"/>
+  
+  <!-- Bottom left wave -->
+  <path d="M180 280 C144 280, 124 300, 124 330 C124 360, 144 380, 180 380 C216 380, 236 360, 236 330 C236 300, 216 280, 180 280 Z" fill="white" opacity="0.95"/>
+  
+  <!-- Bottom right wave -->
+  <path d="M332 280 C296 280, 276 300, 276 330 C276 360, 296 380, 332 380 C368 380, 388 360, 388 330 C388 300, 368 280, 332 280 Z" fill="white" opacity="0.95"/>
+  
+  <!-- Document/Scan icon in center -->
+  <rect x="226" y="240" width="60" height="80" rx="4" fill="white" opacity="0.3"/>
+  <line x1="236" y1="255" x2="276" y2="255" stroke="white" stroke-width="3" opacity="0.5"/>
+  <line x1="236" y1="270" x2="276" y2="270" stroke="white" stroke-width="3" opacity="0.5"/>
+  <line x1="236" y1="285" x2="260" y2="285" stroke="white" stroke-width="3" opacity="0.5"/>
+</svg>

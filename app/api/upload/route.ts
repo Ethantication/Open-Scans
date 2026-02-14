@@ -113,7 +113,25 @@ export async function POST(request: NextRequest) {
     const fileExt = 'pdf'
     const timestamp = Date.now()
     const randomStr = Math.random().toString(36).substring(7)
-    const fileName = `${courseCode}_${year}_${semester}_${examType}_${timestamp}_${randomStr}.${fileExt}`
+    
+    // Map Hebrew to English to avoid Storage errors
+    const semesterMap: { [key: string]: string } = {
+      'א': 'a',
+      'ב': 'b',
+      'קיץ': 'summer'
+    }
+    
+    const examTypeMap: { [key: string]: string } = {
+      'מועד א': 'moed-a',
+      'מועד ב': 'moed-b',
+      'מועד ג': 'moed-c',
+      'בוחן': 'quiz'
+    }
+    
+    const semesterEn = semesterMap[semester] || semester
+    const examTypeEn = examTypeMap[examType] || examType.replace(/\s+/g, '-')
+    
+    const fileName = `${courseCode}_${year}_${semesterEn}_${examTypeEn}_${timestamp}_${randomStr}.${fileExt}`
     
     console.log('Uploading file:', fileName)
     

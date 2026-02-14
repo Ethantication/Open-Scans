@@ -1,16 +1,32 @@
+'use client'
+
+import { useState } from 'react'
 import Link from 'next/link';
 import { INITIAL_COURSES } from '@/lib/courses';
 import './globals.css';
 
 export default function Home() {
+  const [searchQuery, setSearchQuery] = useState('')
+  
   const courseCount = INITIAL_COURSES.length;
   const departments = Array.from(new Set(INITIAL_COURSES.map(c => c.department)));
   
-  // Group popular courses by department
+  // Filter courses based on search
+  const filteredCourses = INITIAL_COURSES.filter(course => {
+    if (!searchQuery) return true
+    const query = searchQuery.toLowerCase()
+    return (
+      course.code.toLowerCase().includes(query) ||
+      course.name.toLowerCase().includes(query) ||
+      course.department.toLowerCase().includes(query)
+    )
+  })
+  
+  // Group filtered courses by department
   const popularByDept = departments.map(dept => ({
     dept,
-    courses: INITIAL_COURSES.filter(c => c.department === dept).slice(0, 3)
-  }));
+    courses: filteredCourses.filter(c => c.department === dept).slice(0, searchQuery ? 100 : 3)
+  })).filter(group => group.courses.length > 0)
 
   return (
     <html lang="he" dir="rtl">
@@ -24,8 +40,8 @@ export default function Home() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="bg-gradient-to-br from-blue-600 to-indigo-600 text-white w-12 h-12 rounded-xl flex items-center justify-center text-2xl font-bold shadow-lg">
-                  OS
+                <div className="w-12 h-12 relative">
+                  <img src="/logo.svg" alt="Open Scans" className="w-full h-full" />
                 </div>
                 <div>
                   <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
@@ -64,12 +80,24 @@ export default function Home() {
               <input
                 type="text"
                 placeholder="🔍 חפש קורס לפי שם או מספר..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full px-6 py-5 text-lg border-2 border-gray-300 rounded-2xl shadow-sm focus:outline-none focus:ring-4 focus:ring-blue-500 focus:border-blue-500 transition-all"
               />
-              <button className="absolute left-4 top-1/2 -translate-y-1/2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                חפש
-              </button>
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              )}
             </div>
+            {searchQuery && (
+              <p className="mt-3 text-gray-600 text-center">
+                נמצאו {filteredCourses.length} קורסים
+              </p>
+            )}
           </div>
 
           {/* Stats */}
@@ -100,7 +128,7 @@ export default function Home() {
           {/* Popular Courses by Department */}
           <div className="space-y-12">
             <h3 className="text-3xl font-bold text-gray-900 text-center mb-8">
-              📖 קורסים פופולריים
+              {searchQuery ? `🔍 תוצאות חיפוש: "${searchQuery}"` : '📖 קורסים פופולריים'}
             </h3>
             
             {popularByDept.map(({ dept, courses }) => (
