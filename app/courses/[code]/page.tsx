@@ -89,10 +89,15 @@ export default async function CoursePage({ params }: { params: { code: string } 
     );
   }
 
+  // Normalize course object (DB has course_name, INITIAL_COURSES has name)
+  const courseName = 'course_name' in course ? course.course_name : course.name
+  const courseCode = 'course_number' in course ? course.course_number : course.code
+  const courseDept = course.department
+
   return (
     <html lang="he" dir="rtl">
       <head>
-        <title>{course.name} ({course.code}) - Open Scans</title>
+        <title>{courseName} ({courseCode}) - Open Scans</title>
       </head>
       <body className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
         {/* Header */}
@@ -133,13 +138,13 @@ export default async function CoursePage({ params }: { params: { code: string } 
             <div className="flex items-start justify-between">
               <div>
                 <div className="inline-block bg-white/20 backdrop-blur-sm px-4 py-2 rounded-lg font-mono font-bold text-lg mb-4">
-                  {course.code}
+                  {courseCode}
                 </div>
                 <h1 className="text-4xl font-bold mb-3">
-                  {course.name}
+                  {courseName}
                 </h1>
                 <p className="text-xl text-white/90">
-                  {course.department}
+                  {courseDept}
                 </p>
               </div>
               
@@ -207,7 +212,7 @@ export default async function CoursePage({ params }: { params: { code: string } 
                 היו הראשונים להעלות סריקה ולעזור לסטודנטים אחרים!
               </p>
               <Link
-                href={`/upload?course=${course?.code}`}
+                href={`/upload?course=${courseCode}`}
                 className="inline-block px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-bold text-lg hover:shadow-xl transition-all hover:scale-105"
               >
                 ➕ העלה את הסריקה הראשונה
