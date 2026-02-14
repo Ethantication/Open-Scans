@@ -1,15 +1,56 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link';
 import { INITIAL_COURSES } from '@/lib/courses';
+import { createClient } from '@supabase/supabase-js';
 import './globals.css';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabase = createClient(supabaseUrl, supabaseKey)
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('')
+  const [totalScans, setTotalScans] = useState(0)
+  const [courseScanCounts, setCourseScanCounts] = useState<{ [key: string]: number }>({})
   
   const courseCount = INITIAL_COURSES.length;
   const departments = Array.from(new Set(INITIAL_COURSES.map(c => c.department)));
+  
+  // Fetch total scans count
+  useEffect(() => {
+    async function fetchStats() {
+      // Get total scans
+      const { count } = await supabase
+        .from('scans')
+        .select('*', { count: 'exact', head: true })
+      
+      setTotalScans(count || 0)
+      
+      // Get scan count per course
+      const { data: courses } = await supabase
+        .from('courses')
+        .select('id, course_number')
+      
+      if (courses) {
+        const counts: { [key: string]: number } = {}
+        
+        for (const course of courses) {
+          const { count } = await supabase
+            .from('scans')
+            .select('*', { count: 'exact', head: true })
+            .eq('course_id', course.id)
+          
+          counts[course.course_number] = count || 0
+        }
+        
+        setCourseScanCounts(counts)
+      }
+    }
+    
+    fetchStats()
+  }, [])
   
   // Filter courses based on search
   const filteredCourses = INITIAL_COURSES.filter(course => {
@@ -111,10 +152,12 @@ export default function Home() {
             
             <div className="bg-white rounded-2xl shadow-md p-8 text-center border-2 border-gray-100 hover:shadow-xl transition-all hover:scale-105">
               <div className="text-5xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-2">
-                0
+                {totalScans}
               </div>
               <div className="text-gray-600 text-lg">סריקות במאגר</div>
-              <div className="text-sm text-gray-500 mt-1">היו הראשונים להעלות!</div>
+              {totalScans === 0 && (
+                <div className="text-sm text-gray-500 mt-1">היו הראשונים להעלות!</div>
+              )}
             </div>
             
             <div className="bg-white rounded-2xl shadow-md p-8 text-center border-2 border-gray-100 hover:shadow-xl transition-all hover:scale-105">
@@ -156,7 +199,7 @@ export default function Home() {
                         {course.name}
                       </div>
                       <div className="mt-3 text-sm text-gray-500">
-                        0 סריקות
+                        {courseScanCounts[course.code] || 0} סריקות
                       </div>
                     </Link>
                   ))}
