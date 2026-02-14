@@ -85,9 +85,7 @@ export default function AboutPage() {
                   </div>
                 </div>
                 <p className="text-gray-700 mb-4">
-                  הי! אני איתן, סטודנט באוניברסיטה הפתוחה שראיתי את הצורך במאגר סריקות נגיש לכולם.
-                  בניתי את Open Scans כפרויקט קהילתי שיעזור לסטודנטים להצליח בלימודים.
-                </p>
+                                  </p>
                 <a
                   href="https://il.linkedin.com/in/ethanorjoseph"
                   target="_blank"
