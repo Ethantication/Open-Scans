@@ -62,11 +62,6 @@ export default async function CoursePage({ params }: { params: { code: string } 
     );
   }
 
-  // Mock data for now - will be replaced with real data from Supabase
-  const scans = [
-    // We'll add real scans later from database
-  ];
-
   return (
     <html lang="he" dir="rtl">
       <head>
