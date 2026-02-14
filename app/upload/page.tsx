@@ -79,7 +79,11 @@ export default function UploadPage() {
 
       // Create FormData for upload
       const uploadFormData = new FormData()
-      uploadFormData.append('file', file)
+      
+      // Read file as blob and append
+      const fileBlob = new Blob([await file.arrayBuffer()], { type: 'application/pdf' })
+      uploadFormData.append('file', fileBlob, file.name)
+      
       uploadFormData.append('courseCode', formData.courseCode)
       uploadFormData.append('newCourseName', formData.newCourseName)
       uploadFormData.append('newCourseDepartment', formData.newCourseDepartment)
@@ -110,6 +114,7 @@ export default function UploadPage() {
       }, 2000)
 
     } catch (err: any) {
+      console.error('Upload error:', err)
       setError(err.message || 'שגיאה בהעלאת הקובץ')
       setIsSubmitting(false)
     }

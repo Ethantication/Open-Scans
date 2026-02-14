@@ -42,12 +42,6 @@ export default function Home() {
                 >
                   ➕ העלה סריקה
                 </Link>
-                <Link 
-                  href="/login"
-                  className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-medium hover:border-blue-600 hover:text-blue-600 transition-all"
-                >
-                  התחבר
-                </Link>
               </div>
             </div>
           </div>
