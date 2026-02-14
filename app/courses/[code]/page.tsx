@@ -1,9 +1,44 @@
 import Link from 'next/link';
 import { INITIAL_COURSES } from '@/lib/courses';
+import { supabase } from '@/lib/supabase';
 import '@/app/globals.css';
 
-export default function CoursePage({ params }: { params: { code: string } }) {
+async function getScans(courseCode: string) {
+  try {
+    // Get course
+    const { data: course } = await supabase
+      .from('courses')
+      .select('id, course_number, course_name, department')
+      .eq('course_number', courseCode)
+      .single();
+
+    if (!course) return [];
+
+    // Get scans
+    const { data: scans } = await supabase
+      .from('scans')
+      .select('*')
+      .eq('course_id', course.id)
+      .order('created_at', { ascending: false });
+
+    return scans || [];
+  } catch (error) {
+    console.error('Error fetching scans:', error);
+    return [];
+  }
+}
+
+function getPublicUrl(filePath: string) {
+  const { data } = supabase.storage
+    .from('scans')
+    .getPublicUrl(filePath);
+  
+  return data.publicUrl;
+}
+
+export default async function CoursePage({ params }: { params: { code: string } }) {
   const course = INITIAL_COURSES.find(c => c.code === params.code);
+  const scans = await getScans(params.code);
   
   if (!course) {
     return (
@@ -143,7 +178,7 @@ export default function CoursePage({ params }: { params: { code: string } }) {
                 היו הראשונים להעלות סריקה ולעזור לסטודנטים אחרים!
               </p>
               <Link
-                href={`/upload?course=${course.code}`}
+                href={`/upload?course=${course?.code}`}
                 className="inline-block px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-bold text-lg hover:shadow-xl transition-all hover:scale-105"
               >
                 ➕ העלה את הסריקה הראשונה
@@ -151,7 +186,63 @@ export default function CoursePage({ params }: { params: { code: string } }) {
             </div>
           ) : (
             <div className="space-y-4">
-              {/* We'll add scan cards here later */}
+              {scans.map((scan: any) => {
+                const publicUrl = getPublicUrl(scan.file_path);
+                
+                return (
+                  <div
+                    key={scan.id}
+                    className="bg-white rounded-xl shadow-md p-6 border-2 border-gray-100 hover:shadow-lg transition-all hover:scale-[1.02]"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-3">
+                          <span className="text-3xl">📄</span>
+                          <div>
+                            <h3 className="text-lg font-bold text-gray-900">
+                              {scan.exam_type} • {scan.semester} {scan.year}
+                            </h3>
+                            <p className="text-sm text-gray-500">
+                              הועלה על ידי <strong>{scan.uploader_name}</strong>
+                              {scan.grade && ` • ציון: ${scan.grade}`}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        {scan.notes && (
+                          <p className="text-gray-600 text-sm mb-3 bg-gray-50 p-3 rounded-lg">
+                            💬 {scan.notes}
+                          </p>
+                        )}
+
+                        <div className="flex items-center gap-4 text-sm text-gray-500">
+                          <span>👁️ {scan.views || 0} צפיות</span>
+                          <span>⬇️ {scan.downloads || 0} הורדות</span>
+                          <span>📅 {new Date(scan.created_at).toLocaleDateString('he-IL')}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col gap-2">
+                        <a
+                          href={publicUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors text-center"
+                        >
+                          👁️ צפה
+                        </a>
+                        <a
+                          href={publicUrl}
+                          download
+                          className="px-6 py-3 border-2 border-blue-600 text-blue-600 rounded-lg font-medium hover:bg-blue-50 transition-colors text-center"
+                        >
+                          ⬇️ הורד
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
